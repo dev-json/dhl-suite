@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Shipment anlegen</title>
+
+    <style>
+        :root {
+            --bg: #05060F;
+            --primary: #8A6CFF;
+            --secondary: #4FD1FF;
+            --accent: #6FFFD2;
+            --glow: #C08CFF;
+            --text: #E6F1FF;
+
+            --radius: 12px;
+            --padding: 14px;
+            --transition: 0.25s ease;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 40px;
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: radial-gradient(circle at 0% 0%, rgba(138,108,255,0.18), transparent 55%),
+                        radial-gradient(circle at 100% 100%, rgba(79,209,255,0.18), transparent 55%),
+                        var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+
+        .card {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(5, 6, 15, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(192, 140, 255, 0.35);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.02), 0 20px 60px rgba(0,0,0,0.75);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section-title {
+            margin-top: 20px;
+            margin-bottom: 5px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: "";
+            width: 4px;
+            height: 20px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, var(--primary), var(--accent));
+            box-shadow: 0 0 8px var(--glow);
+        }
+
+        .section-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            margin-top: 10px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        input, select {
+            width: 100%;
+            padding: var(--padding);
+            border-radius: var(--radius);
+            border: 1px solid rgba(255,255,255,0.12);
+            background: radial-gradient(circle at 0 0, rgba(192,140,255,0.16), transparent 55%),
+                        rgba(8, 10, 22, 0.95);
+            color: var(--text);
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        input::placeholder { color: rgba(230,241,255,0.4); }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 1px rgba(138,108,255,0.7), 0 0 18px rgba(192,140,255,0.7);
+            transform: translateY(-1px);
+        }
+
+        .carrier-select {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .carrier-option {
+            padding: 10px 18px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 0 0, rgba(138,108,255,0.25), transparent 55%),
+                        rgba(8, 10, 22, 0.95);
+            border: 1px solid rgba(255,255,255,0.16);
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .carrier-option input { display: none; }
+
+        .carrier-option:hover {
+            border-color: var(--secondary);
+            box-shadow: 0 0 18px rgba(79,209,255,0.5);
+            transform: translateY(-1px);
+        }
+
+        .carrier-icon { width: 20px; height: 20px; flex-shrink: 0; }
+
+        .carrier-label-text { font-size: 0.9rem; letter-spacing: 0.03em; }
+
+        .carrier-option input:checked ~ .carrier-label-text {
+            color: var(--accent);
+            font-weight: 600;
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        .service-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .service-chip {
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(12, 15, 30, 0.95);
+            border: 1px solid rgba(230,241,255,0.16);
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+        }
+
+        .service-chip input { display: none; }
+
+        .service-chip span { color: rgba(230,241,255,0.85); }
+
+        .service-chip:hover {
+            border-color: var(--secondary);
+            box-shadow: 0 0 12px rgba(79,209,255,0.6);
+            transform: translateY(-1px);
+        }
+
+        .service-chip input:checked + span {
+            color: var(--accent);
+            font-weight: 600;
+            text-shadow: 0 0 8px var(--accent);
+        }
+
+        button {
+            margin-top: 28px;
+            width: 100%;
+            padding: 16px;
+            background: radial-gradient(circle at 0 0, rgba(192,140,255,0.35), transparent 55%),
+                        linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 999px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--bg);
+            transition: var(--transition);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 0 20px rgba(192,140,255,0.8);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.16), 0 0 26px rgba(111,255,210,0.9);
+            background: radial-gradient(circle at 100% 0, rgba(111,255,210,0.45), transparent 55%),
+                        linear-gradient(135deg, var(--secondary), var(--accent));
+        }
+
+        .result-box, .error-box {
+            margin-top: 25px;
+            padding: 16px 18px;
+            border-radius: 12px;
+            display: none;
+            font-size: 0.85rem;
+        }
+
+        .result-box {
+            background: rgba(22, 101, 52, 0.4);
+            border: 1px solid rgba(74, 222, 128, 0.7);
+            box-shadow: 0 0 18px rgba(74,222,128,0.35);
+        }
+
+        .error-box {
+            background: rgba(127,29,29,0.4);
+            border: 1px solid rgba(248,113,113,0.8);
+            box-shadow: 0 0 18px rgba(248,113,113,0.45);
+        }
+
+        .step-section {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.6s ease, opacity 0.6s ease;
+            margin-top: 10px;
+        }
+
+        .step-section.active {
+            max-height: 2000px;
+            opacity: 1;
+        }
+
+        .step-header {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-bottom: 6px;
+        }
+
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(8,10,22,0.9);
+            border: 1px solid rgba(192,140,255,0.5);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        @media (max-width: 720px) {
+            body { padding: 20px; }
+            .card { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Shipment anlegen</h1>
+
+<div class="card">
+    <form id="orderForm">
+
+        <!-- STEP 1: Sendungsart + Rechnungsnummer -->
+        <div class="step-section active" id="step-1">
+            <div class="step-header">
+                <span class="step-badge">Schritt 1 von 3</span>
+            </div>
+
+            <div class="section-title">Sendungsart & Abrechnung</div>
+            <div class="section-subtitle">
+                Wähle das Produkt und gib die Abrechnungsnummer ein. Danach werden Zusatzleistungen freigeschaltet.
+            </div>
+
+            <div class="field-group">
+                <span class="field-label">Versanddienstleister</span>
+                <div class="carrier-select">
+                    <label class="carrier-option">
+                        <input type="radio" name="carrier" value="dhl" checked>
+                        <span class="carrier-label-text">DHL</span>
+                    </label>
+                    <!-- <label class="carrier-option">
+                        <input type="radio" name="carrier" value="dhl_express">
+                        <span class="carrier-label-text">DHL Express</span>
+                    </label> -->
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="field-group">
+                    <span class="field-label">Produkt</span>
+                    <select name="productCode" id="productCode" oninput="checkStep1()">
+                        <option value="">Bitte wählen...</option>
+                        <option value="paket">DHL Paket (national)</option>
+                        <option value="international">DHL Paket International</option>
+                        <option value="europaket">DHL Europaket</option>
+                        <option value="kleinpaket">DHL Kleinpaket</option>
+                        <option value="warenpost">Warenpost International</option>
+                    </select>
+                </div>
+
+                <div class="field-group">
+                    <span class="field-label">Billing Number</span>
+                    <input name="billingNumber" placeholder="1234567890" oninput="checkStep1()">
+                </div>
+
+                <div class="field-group">
+                    <span class="field-label">Referenznummer</span>
+                    <input name="refNo" placeholder="Interne Referenz (optional)">
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2: Zusatzleistungen -->
+        <div class="step-section" id="step-2">
+            <div class="step-header">
+                <span class="step-badge">Schritt 2 von 3</span>
+            </div>
+
+            <div class="section-title">Zusatzleistungen</div>
+            <div class="section-subtitle">
+                Wähle optionale Services für diese Sendung.
+            </div>
+
+            <div id="services-dhl" class="service-list">
+                <label class="service-chip">
+                    <input type="checkbox" name="services" value="gogreen" onchange="checkStep2()">
+                    <span>GoGreen</span>
+                </label>
+
+                <label class="service-chip">
+                    <input type="checkbox" name="services" value="premium" onchange="checkStep2()">
+                    <span>Premium</span>
+                </label>
+
+                <label class="service-chip">
+                    <input type="checkbox" name="services" value="bulky" onchange="checkStep2()">
+                    <span>Sperrgut</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- STEP 3: Absender, Empfänger, Paketdetails -->
+        <div class="step-section" id="step-3">
+            <div class="step-header">
+                <span class="step-badge">Schritt 3 von 3</span>
+            </div>
+
+            <div class="section-title">Absender</div>
+            <div class="section-subtitle">Absenderdaten.</div>
+            <div class="grid">
+                <div class="field-group">
+                    <span class="field-label">Name</span>
+                    <input name="shipper.name" placeholder="Max Mustermann">
+                </div>
+                <div class="field-group">
+                    <span class="field-label">Straße</span>
+                    <input name="shipper.street" placeholder="Musterstraße">
+                </div>
+                <div class="field-group">
+                    <span class="field-label">PLZ</span>
+                    <input name="shipper.postalCode" placeholder="12345">
+                </div>
+                <div class="field-group">
+                    <span class="field-label">Stadt</span>
+                    <input name="shipper.city" placeholder="Berlin">
+                </div>
+                <div class="field-group">
+                    <span class="field-label">Land</span>
+                    <input name="shipper.country" placeholder="DE">
+                </div>
+                <div class="field-group">
+                    <span class="field-label">Telefon</span>
+                    <input name="shipper.phone" placeholder="+49 123 456789">
+                </div>
+            </div>
+
+            <div class="section-title">Empfänger</div>
+            <div class="section-subtitle">Zieladresse.</div>
+            <div class="grid">
+                <div class="field-group">
+                    <span class="field-label">Name</span>
+                    <input name="recipient.name" placeholder="Erika Beispiel">
+                </div>
+                <div class="field-group">
+                    <span class="field-label">Straße</span>
+                    <input name="recipient.street" placeholder="Beispielweg">
+                </div>
+                <div class="field-group">
+                    <span class="field-label">PLZ</span>
+                    <input name="recipient.postalCode" placeholder="54321">
+                </div>
+                <div class="field-group">
+                    <span class="field-label">Stadt</span>
+                    <input name="recipient.city" placeholder="Hamburg">
+                </div>
+                <div class="field-group">
+                    <span class="field-label">Land</span>
+                    <input name="recipient.country" placeholder="DE">
+                </div>
+                <div class="field-group">
+                    <span class="field-label">Telefon</span>
+                    <input name="recipient.phone" placeholder="+49 987 654321">
+                </div>
+            </div>
+
+            <div class="section-title">Paketdetails</div>
+            <div class="section-subtitle">Abmessungen und Gewicht.</div>
+            <div class="grid">
+                <div class="field-group">
+                    <span class="field-label">Länge (dim.length)</span>
+                    <input name="dim.length" placeholder="30">
+                </div>
+                <div class="field-group">
+                    <span class="field-label">Breite (dim.width)</span>
+                    <input name="dim.width" placeholder="20">
+                </div>
+                <div class="field-group">
+                    <span class="field-label">Höhe (dim.height)</span>
+                    <input name="dim.height" placeholder="10">
+                </div>
+                <div class="field-group">
+                    <span class="field-label">Maßeinheit (dim.uom)</span>
+                    <select name="dim.uom">
+                        <option value="CM">CM</option>
+                        <option value="MM">MM</option>
+                        <option value="IN">IN</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <span class="field-label">Gewicht (weight.value)</span>
+                    <input name="weight.value" placeholder="2.5">
+                </div>
+                <div class="field-group">
+                    <span class="field-label">Gewichtseinheit (weight.uom)</span>
+                    <select name="weight.uom">
+                        <option value="KG">KG</option>
+                        <option value="G">G</option>
+                        <option value="LB">LB</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit">Shipment anlegen</button>
+        </div>
+    </form>
+
+    <div id="result" class="result-box"></div>
+    <div id="error" class="error-box"></div>
+</div>
+
+<script>
+    const step1 = document.getElementById("step-1");
+    const step2 = document.getElementById("step-2");
+    const step3 = document.getElementById("step-3");
+
+    function checkStep1() {
+        const product = document.querySelector("[name='productCode']").value;
+        const billing = document.querySelector("[name='billingNumber']").value;
+        if (product && billing) {
+            step2.classList.add("active");
+        } else {
+            step2.classList.remove("active");
+            step3.classList.remove("active");
+        }
+    }
+
+    function checkStep2() {
+        const selected = document.querySelectorAll("input[name='services']:checked");
+        if (selected.length > 0) {
+            step3.classList.add("active");
+        } else {
+            step3.classList.remove("active");
+        }
+    }
+
+    function downloadBase64File(base64, mimeType, fileName) {
+        const byteCharacters = atob(base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: mimeType });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    document.getElementById("orderForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const get = name => document.querySelector(`[name="${name}"]`).value;
+
+        const carrier = document.querySelector("input[name='carrier']:checked").value;
+
+        const selectedServices = {...document.querySelectorAll("input[name='services']:checked")}
+            .map(cb => cb.value + " = " + true);
+        const dhlServices = selectedServices;
+
+        const shipment = {
+            product: get("productCode"),
+            billingNumber: get("billingNumber"),
+            refNo: get("refNo"),
+            shipper: {
+                name1: get("shipper.name"),
+                addressStreet: get("shipper.street"),
+                postalCode: get("shipper.postalCode"),
+                city: get("shipper.city"),
+                country: get("shipper.country"),
+                phone: get("shipper.phone")
+            },
+            consignee: {
+                name1: get("recipient.name"),
+                addressStreet: get("recipient.street"),
+                postalCode: get("recipient.postalCode"),
+                city: get("recipient.city"),
+                country: get("recipient.country"),
+                phone: get("recipient.phone")
+            },
+            details: {
+                dim: {
+                    uom: get("dim.uom"),
+                    height: get("dim.height"),
+                    width: get("dim.width"),
+                    length: get("dim.length")
+                },
+                weight: {
+                    uom: get("weight.uom"),
+                    value: get("weight.value")
+                }
+            },
+            services: dhlServices,
+            carrier: carrier
+        };
+
+        const data = { shipments: [shipment] };
+
+        const resultBox = document.getElementById("result");
+        const errorBox = document.getElementById("error");
+        resultBox.style.display = "none";
+        errorBox.style.display = "none";
+        resultBox.innerHTML = "";
+        errorBox.innerHTML = "";
+
+        try {
+            const response = await fetch("/api/orders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(errText || ("HTTP " + response.status));
+            }
+
+            const json = await response.json();
+            const item = (json.items && json.items[0]) || json;
+
+            resultBox.innerHTML = `
+                <strong>Shipment erfolgreich erstellt.</strong><br><br>
+                <div><b>Shipment-Nr:</b> ${item.shipmentNo || item.shipmentNumber || "-"}</div>
+                <div><b>Tracking-Code:</b> ${item.trackingCode || item.trackingNumber || "-"}</div>
+            `;
+
+            if (item.label && item.label.b64) {
+                const mimeType = item.label.mimeType || "application/pdf";
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.textContent = "Label herunterladen";
+                btn.style.marginTop = "10px";
+                btn.onclick = () => downloadBase64File(item.label.b64, mimeType, "label.pdf");
+                resultBox.appendChild(btn);
+            }
+
+            resultBox.style.display = "block";
+
+        } catch (err) {
+            console.error(err);
+            errorBox.innerHTML = "<strong>Fehler bei der Erstellung des Shipments:</strong><br><pre style='white-space:pre-wrap;margin-top:6px;font-size:0.75rem;'>" +
+                (err.message || err) + "</pre>";
+            errorBox.style.display = "block";
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>DHL Shipment anlegen</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 40px;
+            font-family: "Inter", sans-serif;
+            background: #f2f4f7;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .card {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        .section-title {
+            margin-top: 25px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-left: 4px solid #ffcc00;
+            padding-left: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #d0d7de;
+            background: #f9fafb;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #ffcc00;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(255,204,0,0.25);
+        }
+
+        button {
+            margin-top: 25px;
+            width: 100%;
+            padding: 14px;
+            background: #ffcc00;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        button:hover {
+            background: #e6b800;
+        }
+
+        .result-box {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            display: none;
+        }
+
+        .error-box {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #ffebee;
+            color: #c62828;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>DHL Shipment anlegen</h1>
+
+<div class="card">
+    <form id="orderForm">
+
+        <div class="section-title">Shipper</div>
+        <div class="grid">
+            <input name="shipper.name" placeholder="Name">
+            <input name="shipper.street" placeholder="Straße">
+            <input name="shipper.houseNumber" placeholder="Hausnummer">
+            <input name="shipper.postalCode" placeholder="PLZ">
+            <input name="shipper.city" placeholder="Stadt">
+            <input name="shipper.country" placeholder="Land (z.B. DE)">
+        </div>
+
+        <div class="section-title">Empfänger</div>
+        <div class="grid">
+            <input name="recipient.name" placeholder="Name">
+            <input name="recipient.street" placeholder="Straße">
+            <input name="recipient.houseNumber" placeholder="Hausnummer">
+            <input name="recipient.postalCode" placeholder="PLZ">
+            <input name="recipient.city" placeholder="Stadt">
+            <input name="recipient.country" placeholder="Land (z.B. DE)">
+        </div>
+
+        <div class="section-title">Paket</div>
+        <div class="grid">
+            <input name="packages[0].weight" placeholder="Gewicht (kg)">
+            <input name="packages[0].length" placeholder="Länge (cm)">
+            <input name="packages[0].width" placeholder="Breite (cm)">
+            <input name="packages[0].height" placeholder="Höhe (cm)">
+        </div>
+
+        <div class="section-title">Versanddetails</div>
+        <div class="grid">
+            <input name="plannedShippingDate" placeholder="YYYY-MM-DD">
+            <input name="productCode" placeholder="Produktcode (z.B. V01PAK)">
+        </div>
+
+        <button type="submit">Shipment anlegen</button>
+    </form>
+
+    <div id="result" class="result-box"></div>
+    <div id="error" class="error-box"></div>
+</div>
+
+<script>
+    document.getElementById("orderForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const get = name => document.querySelector(`[name="${name}"]`).value;
+
+        const data = {
+            shipments: [
+                {
+                    product: get("productCode"),
+                    shipper: {
+                        name1: get("shipper.name"),
+                        addressStreet: get("shipper.street"),
+                        houseNumber: get("shipper.houseNumber"),
+                        postalCode: get("shipper.postalCode"),
+                        city: get("shipper.city"),
+                        country: get("shipper.country")
+
+                    },
+
+                    consignee: {
+                        name1: get("recipient.name"),
+                        addressStreet: get("recipient.street"),
+                        houseNumber: get("recipient.houseNumber"),
+                        postalCode: get("recipient.postalCode"),
+                        city: get("recipient.city"),
+                        country: get("recipient.country")
+                    },
+
+                    details:
+                        {
+                            weight:
+                            {
+                                value: get("packages[0].weight")
+                            },
+                            dim: {
+                                length: get("packages[0].length"),
+                                width: get("packages[0].width"),
+                                height: get("packages[0].height")
+                            }
+                       }
+                }
+            ]
+        };
+
+        const resultBox = document.getElementById("result");
+        const errorBox = document.getElementById("error");
+
+        resultBox.style.display = "none";
+        errorBox.style.display = "none";
+
+        try {
+            const response = await fetch("/api/orders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const err = await response.text();
+                throw new Error(err);
+            }
+
+            const json = await response.json();
+
+            resultBox.innerHTML = `
+                <strong>Shipment erfolgreich erstellt!</strong><br><br>
+                <b>Shipment-Nr:</b> ${json.items[0].shipmentNo}<br>
+                <b>Routing-Code:</b> ${json.items[0].routingCode}<br>
+                <b>Label:</b> <button id="downloadLabelBtn">Download</button>
+
+            `;
+            resultBox.style.display = "block";
+
+            document.getElementById("downloadLabelBtn").addEventListener("click", () => {
+                const label = json.items[0].label;
+                downloadBase64File(label.b64, label.mimeType, "label.pdf");
+            });
+
+        } catch (err) {
+            errorBox.innerHTML = "<strong>Fehler</strong><br> Es ist ein Fehler aufgetreten! Bitte wenden Sie sich an den Administrator!";
+            errorBox.style.display = "block";
+        }
+    });
+document.getElementById("downloadLabelBtn").addEventListener("click", () => {
+    const label = json.items[0].label;
+    downloadBase64File(label.b64, label.mimeType, "label.pdf");
+});
+
+
+function downloadBase64File(base64, mimeType, fileName) { const byteCharacters = atob(base64); const byteNumbers = new Array(byteCharacters.length); for (let i = 0; i < byteCharacters.length; i++) { byteNumbers[i] = byteCharacters.charCodeAt(i); } const byteArray = new Uint8Array(byteNumbers); const blob = new Blob([byteArray], { type: mimeType }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = fileName; link.click(); URL.revokeObjectURL(link.href); }
+</script>
+
+
+</body>
+</html>

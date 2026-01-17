@@ -1,0 +1,10 @@
+dhl:
+  auth:
+    url: https://api-sandbox.dhl.com/parcel/de/account/auth/ropc/v1/token
+  client:
+    id: <id>
+    secret: <secret>
+  username: user-valid
+  password: SandboxPasswort2023!
+  api:
+    base-url: https://api-sandbox.dhl.com/parcel/de/shipping/v2/
